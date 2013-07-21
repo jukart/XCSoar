@@ -50,6 +50,7 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Traffic/TrafficList.cpp \
 	$(SRC)/Dialogs/Traffic/FlarmTrafficDetails.cpp \
 	$(SRC)/Dialogs/Traffic/TeamCodeDialog.cpp \
+	$(SRC)/Dialogs/LogBook/dlgLogBookList.cpp \
 	$(SRC)/Dialogs/dlgAnalysis.cpp \
 	$(SRC)/Dialogs/dlgChecklist.cpp \
 	$(SRC)/Dialogs/ProfileListDialog.cpp \
@@ -278,6 +279,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Logger/ExternalLogger.cpp \
 	$(SRC)/Logger/FlightLogger.cpp \
 	$(SRC)/Logger/GlueFlightLogger.cpp \
+	$(SRC)/Parser/TimeParser.cpp \
 	$(SRC)/NMEA/Info.cpp \
 	$(SRC)/NMEA/MoreData.cpp \
 	$(SRC)/NMEA/Acceleration.cpp \

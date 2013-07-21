@@ -24,7 +24,18 @@ Copyright_License {
 #include "FlightLogger.hpp"
 #include "NMEA/MoreData.hpp"
 #include "NMEA/Derived.hpp"
+#include "Simulator.hpp"
+#include "Interface.hpp"
+#include "Components.hpp"
+#include "Blackboard/LiveBlackboard.hpp"
 #include "IO/TextWriter.hpp"
+#include "Formatter/GeoPointFormatter.hpp"
+#include "Formatter/TimeFormatter.hpp"
+#include "Engine/Waypoint/Waypoint.hpp"
+#include "Engine/Waypoint/Waypoints.hpp"
+#include "MapWindow/Items/MapItem.hpp"
+#include "MapWindow/Items/List.hpp"
+#include "MapWindow/Items/Builder.hpp"
 
 void
 FlightLogger::Reset()
@@ -36,7 +47,9 @@ FlightLogger::Reset()
 }
 
 void
-FlightLogger::LogEvent(const BrokenDateTime &date_time, const char *type)
+FlightLogger::LogEvent(const FlyingState &flight,
+                       const BrokenDateTime &date_time,
+                       const EventType event_type)
 {
   assert(type != nullptr);
 
@@ -46,12 +59,52 @@ FlightLogger::LogEvent(const BrokenDateTime &date_time, const char *type)
        usually the log file cannot be written either .. */
     return;
 
-  /* XXX log pilot name, glider, airfield name */
+  const ComputerSettings &settings_computer = CommonInterface::GetComputerSettings();
+  const LoggerSettings &logger = settings_computer.logger;
+  const Plane &plane = settings_computer.plane;
 
-  writer.FormatLine("%04u-%02u-%02uT%02u:%02u:%02u %s",
-                    date_time.year, date_time.month, date_time.day,
-                    date_time.hour, date_time.minute, date_time.second,
-                    type);
+  char time_buffer[32];
+  FormatISO8601(time_buffer, date_time);
+
+  const GeoPoint *location;
+  if (event_type == EventType::START)
+      location = &flight.takeoff_location;
+  else
+      location = &flight.landing_location;
+
+  const Waypoint *airfield = NULL;
+
+  StaticString<30> lat_buffer;
+  lat_buffer.clear();
+  StaticString<30> lon_buffer;
+  lon_buffer.clear();
+  if (location->IsValid()) {
+    TCHAR sign = negative(location->longitude.Native()) ? _T('W') : _T('E');
+    fixed mlong(location->longitude.AbsoluteDegrees());
+    lon_buffer.Format(_T("%08.4f%c"), mlong, sign);
+    sign = negative(location->latitude.Native()) ? _T('S') : _T('N');
+    mlong = location->latitude.AbsoluteDegrees();
+    lat_buffer.Format(_T("%08.4f%c"), mlong, sign);
+    
+    // get map items near the current location
+    GeoPoint takeoff(location->longitude,
+                     location->latitude);
+
+    airfield = way_points.GetNearestLandable(*location, fixed(1000));
+  }
+
+  writer.FormatLine("%s,%c,%c,%s,%s,%s,%s,%s,%s,%s",
+                    time_buffer,
+                    event_type,
+                    is_simulator() ? 'S' : 'R',
+                    logger.pilot_name.c_str(),
+                    plane.type.c_str(),
+                    plane.registration.c_str(),
+                    plane.competition_id.c_str(),
+                    lat_buffer.c_str(),
+                    lon_buffer.c_str(),
+                    airfield ? airfield->name.c_str() : ""
+                    );
 }
 
 void
@@ -68,7 +121,7 @@ FlightLogger::TickInternal(const MoreData &basic,
       /* start was confirmed (not on ground anymore): log it */
       seen_on_ground = false;
 
-      LogEvent(start_time, "start");
+      LogEvent(flight, start_time, EventType::START);
 
       start_time.Clear();
     }
@@ -82,7 +135,7 @@ FlightLogger::TickInternal(const MoreData &basic,
       /* landing was confirmed (not on ground anymore): log it */
       seen_flying = false;
 
-      LogEvent(landing_time, "landing");
+      LogEvent(flight, landing_time, EventType::LANDING);
 
       landing_time.Clear();
     }

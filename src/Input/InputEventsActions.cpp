@@ -57,6 +57,8 @@ doc/html/advanced/input/ALL		http://xcsoar.sourceforge.net/advanced/input/
 #include "Dialogs/Weather/WeatherDialog.hpp"
 #include "Dialogs/Plane/PlaneDialogs.hpp"
 #include "Dialogs/ProfileListDialog.hpp"
+#include "Dialogs/LogBook/LogBook.hpp"
+#include "Dialogs/Message.hpp"
 #include "Dialogs/dlgAnalysis.hpp"
 #include "Dialogs/FileManager.hpp"
 #include "Dialogs/ReplayDialog.hpp"
@@ -529,6 +531,14 @@ void
 InputEvents::eventCredits(gcc_unused const TCHAR *misc)
 {
   dlgCreditsShowModal(*CommonInterface::main_window);
+}
+
+// LogBook
+// Show the content of the current flight log.
+void
+InputEvents::eventLogBook(gcc_unused const TCHAR *misc)
+{
+  dlgLogBookShowList(*CommonInterface::main_window);
 }
 
 // Run

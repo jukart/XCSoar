@@ -29,6 +29,13 @@ Copyright_License {
 
 struct MoreData;
 struct DerivedInfo;
+struct FlyingState;
+
+
+enum class EventType {
+    START = 'S',
+    LANDING = 'L'
+};
 
 /**
  * This class logs start and landing into a file, to be used as a
@@ -73,7 +80,9 @@ public:
   void Tick(const MoreData &basic, const DerivedInfo &calculated);
 
 private:
-  void LogEvent(const BrokenDateTime &date_time, const char *type);
+  void LogEvent(const FlyingState &flight,
+                const BrokenDateTime &date_time,
+                const EventType event_type);
 
   void TickInternal(const MoreData &basic, const DerivedInfo &calculated);
 };

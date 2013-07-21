@@ -126,7 +126,7 @@ TARGET=UNIX
 endif
 
 ifeq (\$(TARGET),UNIX)
-TARGET_LDFLAGS = -static-libgcc
+TARGET_LDFLAGS = -shared-libgcc
 endif
 
 # Best local toolchain:
