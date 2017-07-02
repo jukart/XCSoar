@@ -171,5 +171,5 @@ dlgAlternatesListShowModal()
   if (i < 0 || (unsigned)i >= widget.alternates.size())
     return;
 
-  dlgWaypointDetailsShowModal(widget.alternates[i].waypoint, false);
+  dlgWaypointDetailsShowModal(widget.alternates[i].waypoint, true);
 }
